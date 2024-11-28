@@ -1,0 +1,14 @@
+{
+  "name": "bbyads-onsite-generator",
+  "id": "1443640089929773701",
+  "api": "1.0.0",
+  "main": "src/code.ts",
+  "ui": "src/ui.html",
+  "capabilities": [],
+  "enableProposedApi": false,
+  "documentAccess": "dynamic-page",
+  "editorType": ["figma", "figjam"],
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "bbyads-onsite-generator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/code.ts",
+  "scripts": {
+    "build": "webpack --mode production",
+    "watch": "webpack --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.103.0",
+    "html-loader": "^5.1.0",
+    "typescript": "^5.7.2",
+    "webpack": "^5.96.1",
+    "webpack-cli": "^5.1.4"
+  }
+}

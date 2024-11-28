@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Test</title>
+  </head>
+  <body>
+    <button id="testButton">Click Me</button>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        console.log("Script loaded!");
+        document.getElementById("testButton").addEventListener("click", () => {
+          console.log("Button clicked!");
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ad Input</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      input[type="text"],
+      input[type="file"] {
+        width: 100%;
+        margin-bottom: 15px;
+      }
+      button {
+        padding: 10px 20px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Ad Content</h1>
+    <form id="inputForm">
+      <label for="headline-en">Headline EN</label>
+      <input
+        type="text"
+        id="headline-en"
+        placeholder="Enter Headline EN"
+        required
+      />
+      <label for="headline-fr">Headline FR</label>
+      <input
+        type="text"
+        id="headline-fr"
+        placeholder="Enter Headline FR"
+        required
+      />
+
+      <button type="submit">Submit</button>
+    </form>
+    <script>
+      // Handle form submission
+      document
+        .getElementById("inputForm")
+        .addEventListener("submit", (event) => {
+          event.preventDefault(); // Prevents the default form submission behavior
+
+          // Log to verify the form is being submitted
+          console.log("Form submitted");
+
+          const headlineEn = document.getElementById("headline-en").value;
+          const headlineFr = document.getElementById("headline-fr").value;
+
+          // Log to check the headline value before sending
+          console.log("Headline EN:", headlineEn);
+
+          parent.postMessage(
+            {
+              pluginMessage: {
+                type: "submit",
+                data: { headlineEn, headlineFr },
+              },
+            },
+            "*"
+          );
+        });
+    </script>
+  </body>
+</html>
