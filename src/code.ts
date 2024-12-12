@@ -15,10 +15,18 @@ function findAllChildFrames(node: SceneNode): FrameNode[] {
   return childFrames;
 }
 
+// Find frames containing a specific ID in their name
 function findFramesContainingId(id: string): FrameNode[] {
   return figma.currentPage.findAll(
     (node) => node.type === "FRAME" && node.name.includes(id)
   ) as FrameNode[];
+}
+
+// Find instances by their name
+function findInstancesByName(instanceName: string): InstanceNode[] {
+  return figma.currentPage.findAll(
+    (node) => node.type === "INSTANCE" && node.name === instanceName
+  ) as InstanceNode[];
 }
 
 // Function to load font and update a text node
@@ -44,6 +52,7 @@ async function updateTextNode(
   }
 }
 
+// Function to update an image node
 async function updateImageNode(node: RectangleNode, imageUrl: string) {
   try {
     if (!imageUrl) {
@@ -59,7 +68,6 @@ async function updateImageNode(node: RectangleNode, imageUrl: string) {
     const imageBytes = await response.arrayBuffer();
     const image = figma.createImage(new Uint8Array(imageBytes));
 
-    // Set the image as the fill of the node
     node.fills = [
       {
         type: "IMAGE",
@@ -86,106 +94,36 @@ figma.ui.onmessage = async (msg) => {
         console.log("Processing ad:", ad);
 
         if (!ad.id) {
-          console.error("Ad name is missing or undefined:", ad);
+          console.error("Ad ID is missing or undefined:", ad);
           continue; // Skip invalid ads
         }
 
-        // Find all frames containing the ad ID in their name
+        // Find all matching frames and instances
         const matchingFrames = findFramesContainingId(ad.id);
+        const matchingInstances = findInstancesByName(ad.id);
 
-        if (matchingFrames.length === 0) {
-          console.error(`No frames found containing ID: ${ad.id}`);
+        if (matchingFrames.length === 0 && matchingInstances.length === 0) {
+          console.error(`No frames or instances found containing ID: ${ad.id}`);
           continue;
         }
 
-        console.log(
-          `Found ${matchingFrames.length} frames with name: ${ad.id}`
-        );
+        // console.log(
+        //   `Found ${matchingFrames.length} frames and ${matchingInstances.length} instances for ID: ${ad.id}`
+        // );
 
+        // Update frames
         for (const frame of matchingFrames) {
-          // Find all child frames within the current frame
           const childFrames = findAllChildFrames(frame);
-
-          console.log(
-            `Found ${childFrames.length} child frames in ${frame.name}`
-          );
-
           for (const childFrame of childFrames) {
-            // Update headline (English)
-            const headlineNode = childFrame.findOne(
-              (node) => node.name === "headlineEN" && node.type === "TEXT"
-            ) as TextNode;
-            if (headlineNode) {
-              await updateTextNode(
-                headlineNode,
-                ad.headlineEN,
-                "Human BBY Digital",
-                "Bold"
-              );
-            } else {
-              console.log("Headline node not found in frame:", childFrame.name);
-            }
+            await processFrameContent(childFrame, ad);
+          }
+        }
 
-            // Update subheadline (English)
-            const subheadlineNode = childFrame.findOne(
-              (node) => node.name === "subheadlineEN" && node.type === "TEXT"
-            ) as TextNode;
-            if (subheadlineNode) {
-              await updateTextNode(
-                subheadlineNode,
-                ad.subheadlineEN,
-                "Human BBY Digital",
-                "Regular"
-              );
-            } else {
-              console.log(
-                "Subheadline node not found in frame:",
-                childFrame.name
-              );
-            }
-
-            // Update headline (French)
-            const headlineNodeFR = childFrame.findOne(
-              (node) => node.name === "headlineFR" && node.type === "TEXT"
-            ) as TextNode;
-            if (headlineNodeFR) {
-              await updateTextNode(
-                headlineNode,
-                ad.headlineFR,
-                "Human BBY Digital",
-                "Bold"
-              );
-            } else {
-              console.log("Headline node not found in frame:", childFrame.name);
-            }
-
-            // Update subheadline (French)
-            const subheadlineNodeFR = childFrame.findOne(
-              (node) => node.name === "subheadlineFR" && node.type === "TEXT"
-            ) as TextNode;
-            if (subheadlineNodeFR) {
-              await updateTextNode(
-                subheadlineNode,
-                ad.subheadlineFR,
-                "Human BBY Digital",
-                "Regular"
-              );
-            } else {
-              console.log(
-                "Subheadline node not found in frame:",
-                childFrame.name
-              );
-            }
-
-            // Update image frame
-            const imageNode = childFrame.findOne(
-              (node) => node.name === "image" && node.type === "RECTANGLE"
-            ) as RectangleNode;
-            if (imageNode) {
-              await updateImageNode(imageNode, ad.imageUrl); // Ensure `ad.imageUrl` is passed in your JSON
-            } else {
-              console.log("Image node not found in frame:", childFrame.name);
-            }
+        // Update instances
+        for (const instance of matchingInstances) {
+          const childFrames = findAllChildFrames(instance);
+          for (const childFrame of childFrames) {
+            await processFrameContent(childFrame, ad);
           }
         }
       }
@@ -199,3 +137,108 @@ figma.ui.onmessage = async (msg) => {
     }
   }
 };
+
+// Helper function to process content updates for a given frame or instance
+async function processFrameContent(frame: FrameNode, ad: any) {
+  // Update headline (English)
+  const headlineNodeEN = frame.findOne(
+    (node) => node.name === "headlineEN" && node.type === "TEXT"
+  ) as TextNode;
+  if (headlineNodeEN) {
+    await updateTextNode(
+      headlineNodeEN,
+      ad.headlineEN,
+      "Human BBY Digital",
+      "Bold"
+    );
+  }
+
+  // Update subheadline (English)
+  const subheadlineNodeEN = frame.findOne(
+    (node) => node.name === "subheadlineEN" && node.type === "TEXT"
+  ) as TextNode;
+  if (subheadlineNodeEN) {
+    await updateTextNode(
+      subheadlineNodeEN,
+      ad.subheadlineEN,
+      "Human BBY Digital",
+      "Regular"
+    );
+  }
+
+  // Update fineprint (English)
+  const fineprintNodeEN = frame.findOne(
+    (node) => node.name === "fineprintEN" && node.type === "TEXT"
+  ) as TextNode;
+  if (fineprintNodeEN) {
+    await updateTextNode(
+      fineprintNodeEN,
+      ad.fineprintEN,
+      "Human BBY Digital",
+      "Regular"
+    );
+  }
+
+  // Update CTA button (English)
+  const ctaNodeEN = frame.findOne(
+    (node) => node.name === "ctaEN" && node.type === "TEXT"
+  ) as TextNode;
+  if (ctaNodeEN) {
+    await updateTextNode(ctaNodeEN, ad.ctaEN, "Human BBY Digital", "Medium");
+  }
+
+  // Update headline (French)
+  const headlineNodeFR = frame.findOne(
+    (node) => node.name === "headlineFR" && node.type === "TEXT"
+  ) as TextNode;
+  if (headlineNodeFR) {
+    await updateTextNode(
+      headlineNodeFR,
+      ad.headlineFR,
+      "Human BBY Digital",
+      "Bold"
+    );
+  }
+
+  // Update subheadline (French)
+  const subheadlineNodeFR = frame.findOne(
+    (node) => node.name === "subheadlineFR" && node.type === "TEXT"
+  ) as TextNode;
+  if (subheadlineNodeFR) {
+    await updateTextNode(
+      subheadlineNodeFR,
+      ad.subheadlineFR,
+      "Human BBY Digital",
+      "Regular"
+    );
+  }
+
+  // Update fineprint (French)
+  const fineprintNodeFR = frame.findOne(
+    (node) => node.name === "fineprintFR" && node.type === "TEXT"
+  ) as TextNode;
+  if (fineprintNodeFR) {
+    await updateTextNode(
+      fineprintNodeFR,
+      ad.fineprintFR,
+      "Human BBY Digital",
+      "Regular"
+    );
+  }
+
+  // Update CTA button (French)
+  const ctaNodeFR = frame.findOne(
+    (node) => node.name === "ctaFR" && node.type === "TEXT"
+  ) as TextNode;
+  if (ctaNodeFR) {
+    await updateTextNode(ctaNodeFR, ad.ctaFR, "Human BBY Digital", "Medium");
+  }
+
+  // Additional updates for other fields (French, fine print, images, etc.)
+  const imageNode = frame.findOne(
+    (node) => node.name === "image" && node.type === "RECTANGLE"
+  ) as RectangleNode;
+  if (imageNode) {
+    await updateImageNode(imageNode, ad.imageUrl);
+  }
+}
