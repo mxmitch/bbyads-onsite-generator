@@ -9,6 +9,9 @@
   "documentAccess": "dynamic-page",
   "editorType": ["figma", "figjam"],
   "networkAccess": {
-    "allowedDomains": ["https://images.contentstack.io"]
+    "allowedDomains": [
+      "https://images.contentstack.io",
+      "https://cdn.jsdelivr.net"
+    ]
   }
 }

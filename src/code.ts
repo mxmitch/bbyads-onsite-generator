@@ -44,9 +44,9 @@ async function updateTextNode(
   try {
     await figma.loadFontAsync({ family: fontFamily, style: fontStyle });
     node.characters = text;
-    console.log(
-      `Updated text for ${node.name} to "${text}" with font ${fontFamily} ${fontStyle}`
-    );
+    // console.log(
+    //   `Updated text for ${node.name} to "${text}" with font ${fontFamily} ${fontStyle}`
+    // );
   } catch (error) {
     console.error(`Error updating text for ${node.name}:`, error);
   }
@@ -75,7 +75,7 @@ async function updateImageNode(node: RectangleNode, imageUrl: string) {
         imageHash: image.hash,
       },
     ];
-    console.log(`Updated image for node ${node.name} with URL ${imageUrl}`);
+    // console.log(`Updated image for node ${node.name} with URL ${imageUrl}`);
   } catch (error) {
     console.error(`Error updating image for node ${node.name}:`, error);
   }
@@ -85,12 +85,13 @@ async function updateImageNode(node: RectangleNode, imageUrl: string) {
 figma.showUI(__html__, { width: 400, height: 300 });
 
 figma.ui.onmessage = async (msg) => {
-  if (msg.type === "update-ads") {
+  if (msg.type === "file-data") {
     try {
-      const adsData = msg.ads;
-      console.log("Ads data received:", adsData);
+      const { format, data } = msg;
+      console.log(`Received ${format} data:`, data);
 
-      for (const ad of adsData) {
+      // Process the data (common logic for both Excel and JSON)
+      for (const ad of data) {
         console.log("Processing ad:", ad);
 
         if (!ad.id) {
@@ -187,6 +188,19 @@ async function processFrameContent(frame: FrameNode, ad: any) {
     await updateTextNode(ctaNodeEN, ad.ctaEN, "Human BBY Digital", "Medium");
   }
 
+  // Update Text Link (English)
+  const textlinkNodeEN = frame.findOne(
+    (node) => node.name === "textlinkEN" && node.type === "TEXT"
+  ) as TextNode;
+  if (textlinkNodeEN) {
+    await updateTextNode(
+      textlinkNodeEN,
+      ad.textlinkEN,
+      "Human BBY Digital",
+      "Bold"
+    );
+  }
+
   // Update headline (French)
   const headlineNodeFR = frame.findOne(
     (node) => node.name === "headlineFR" && node.type === "TEXT"
@@ -234,7 +248,7 @@ async function processFrameContent(frame: FrameNode, ad: any) {
     await updateTextNode(ctaNodeFR, ad.ctaFR, "Human BBY Digital", "Medium");
   }
 
-  // Additional updates for other fields (French, fine print, images, etc.)
+  // Update Image
   const imageNode = frame.findOne(
     (node) => node.name === "image" && node.type === "RECTANGLE"
   ) as RectangleNode;

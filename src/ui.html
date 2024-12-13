@@ -1,23 +1,92 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  </head>
   <body>
-    <input type="file" id="upload-json" accept=".json" />
+    <h3>Please upload an excel or JSON file.</h3>
+    <input type="file" id="file-input" accept=".json, .xlsx, .xls" />
     <button id="update-ads">Update Ads</button>
     <script>
-      document.getElementById("update-ads").onclick = () => {
-        const fileInput = document.getElementById("upload-json");
-        if (fileInput.files.length > 0) {
-          const reader = new FileReader();
-          reader.onload = () => {
-            const ads = JSON.parse(reader.result);
+      const fileInput = document.getElementById("file-input");
+      const processButton = document.getElementById("update-ads");
+
+      processButton.addEventListener("click", async () => {
+        const file = fileInput.files[0];
+        if (!file) {
+          console.error("No file selected.");
+          return;
+        }
+
+        const fileName = file.name.toLowerCase();
+
+        if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
+          processExcelFile(file);
+        } else if (fileName.endsWith(".json")) {
+          processJsonFile(file);
+        } else {
+          console.error(
+            "Unsupported file type. Please upload an Excel or JSON file."
+          );
+        }
+      });
+
+      function processExcelFile(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: "array" });
+            const sheetName = workbook.SheetNames[0]; // Use the first sheet
+            const jsonData = XLSX.utils.sheet_to_json(
+              workbook.Sheets[sheetName]
+            );
+
+            console.log("Excel file processed successfully:", jsonData);
+
+            // Send JSON data to the Figma plugin
             parent.postMessage(
-              { pluginMessage: { type: "update-ads", ads } },
+              {
+                pluginMessage: {
+                  type: "file-data",
+                  format: "excel",
+                  data: jsonData,
+                },
+              },
               "*"
             );
-          };
-          reader.readAsText(fileInput.files[0]);
-        }
-      };
+          } catch (error) {
+            console.error("Error processing Excel file:", error);
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      }
+
+      function processJsonFile(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const jsonData = JSON.parse(e.target.result);
+
+            console.log("JSON file processed successfully:", jsonData);
+
+            // Send JSON data to the Figma plugin
+            parent.postMessage(
+              {
+                pluginMessage: {
+                  type: "file-data",
+                  format: "json",
+                  data: jsonData,
+                },
+              },
+              "*"
+            );
+          } catch (error) {
+            console.error("Error processing JSON file:", error);
+          }
+        };
+        reader.readAsText(file);
+      }
     </script>
   </body>
 </html>
