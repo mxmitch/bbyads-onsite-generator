@@ -37,8 +37,10 @@ async function updateTextNode(
   fontStyle: string
 ) {
   if (typeof text !== "string" || text.trim() === "") {
-    console.error(`Invalid text value for node ${node.name}:`, text);
-    return; // Skip updating this node
+    node.characters = ""; // Clear existing text
+    node.visible = false; // Hide the node
+    console.log(`Hid text node ${node.name} due to empty or undefined text.`);
+    return;
   }
 
   try {
@@ -256,3 +258,13 @@ async function processFrameContent(frame: FrameNode, ad: any) {
     await updateImageNode(imageNode, ad.imageUrl);
   }
 }
+
+const utils = {
+  findAllChildFrames,
+  findFramesContainingId,
+  findInstancesByName,
+  updateTextNode,
+  updateImageNode,
+};
+
+export default utils;
